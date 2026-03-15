@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,7 +6,13 @@
 <meta charset="UTF-8">
 <title>AI Pose Camera</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+<!-- ป้องกัน favicon error -->
+<link rel="icon" href="data:,">
+
+<!-- TensorFlow (เวอร์ชันที่เข้ากันกับ Teachable Machine) -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1"></script>
+
+<!-- Teachable Machine Pose -->
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 
 <style>
@@ -20,6 +27,7 @@ padding:20px;
 button{
 font-size:18px;
 padding:10px 20px;
+margin-top:15px;
 }
 
 canvas{
@@ -66,20 +74,19 @@ const size = 400;
 const flip = true;
 
 webcam = new tmPose.Webcam(size, size, flip);
-
 await webcam.setup();
 await webcam.play();
 
 window.requestAnimationFrame(loop);
 
 const canvas = document.getElementById("canvas");
-
 canvas.width = size;
 canvas.height = size;
 
 ctx = canvas.getContext("2d");
 
 labelContainer = document.getElementById("label-container");
+labelContainer.innerHTML = "";
 
 for (let i = 0; i < maxPredictions; i++) {
 labelContainer.appendChild(document.createElement("div"));
@@ -91,7 +98,6 @@ async function loop() {
 
 webcam.update();
 await predict();
-
 window.requestAnimationFrame(loop);
 
 }
@@ -134,3 +140,4 @@ tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
 
 </body>
 </html>
+```
