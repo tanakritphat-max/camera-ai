@@ -1,22 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 <title>AI Pose Camera</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+
 <style>
+
 body{
 font-family: Arial;
-text-align: center;
+text-align:center;
 background:#f0f0f0;
 padding:20px;
 }
 
+button{
+font-size:18px;
+padding:10px 20px;
+}
+
 canvas{
 border:2px solid black;
+margin-top:20px;
 }
+
+#label-container{
+margin-top:15px;
+font-size:20px;
+}
+
 </style>
 
 </head>
@@ -27,7 +43,7 @@ border:2px solid black;
 
 <button onclick="init()">Start Camera</button>
 
-<br><br>
+<br>
 
 <canvas id="canvas"></canvas>
 
@@ -51,12 +67,14 @@ const size = 400;
 const flip = true;
 
 webcam = new tmPose.Webcam(size, size, flip);
+
 await webcam.setup();
 await webcam.play();
 
 window.requestAnimationFrame(loop);
 
 const canvas = document.getElementById("canvas");
+
 canvas.width = size;
 canvas.height = size;
 
@@ -73,7 +91,9 @@ labelContainer.appendChild(document.createElement("div"));
 async function loop() {
 
 webcam.update();
+
 await predict();
+
 window.requestAnimationFrame(loop);
 
 }
@@ -81,12 +101,14 @@ window.requestAnimationFrame(loop);
 async function predict() {
 
 const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
+
 const prediction = await model.predict(posenetOutput);
 
 for (let i = 0; i < maxPredictions; i++) {
 
 const classPrediction =
-prediction[i].className + " : " + prediction[i].probability.toFixed(2);
+prediction[i].className + " : " +
+(prediction[i].probability * 100).toFixed(1) + "%";
 
 labelContainer.childNodes[i].innerHTML = classPrediction;
 
@@ -98,6 +120,8 @@ drawPose(pose);
 
 function drawPose(pose) {
 
+if (webcam.canvas) {
+
 ctx.drawImage(webcam.canvas, 0, 0);
 
 if (pose) {
@@ -106,6 +130,8 @@ const minPartConfidence = 0.5;
 
 tmPose.drawKeypoints(pose.keypoints, minPartConfidence, ctx);
 tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
+
+}
 
 }
 
