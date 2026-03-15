@@ -1,44 +1,23 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>AI Pose Detection</title>
+<title>AI Pose Camera</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 
 <style>
-
 body{
 font-family: Arial;
-text-align:center;
+text-align: center;
 background:#f0f0f0;
 padding:20px;
 }
 
-button{
-background:#28a745;
-color:white;
-border:none;
-padding:15px 30px;
-font-size:18px;
-border-radius:10px;
-cursor:pointer;
-}
-
 canvas{
-margin-top:20px;
-border:1px solid #ccc;
+border:2px solid black;
 }
-
-#label-container{
-margin-top:20px;
-font-size:20px;
-}
-
 </style>
 
 </head>
@@ -47,7 +26,7 @@ font-size:20px;
 
 <h2>AI Pose Detection</h2>
 
-<button onclick="init()">เปิดกล้อง</button>
+<button onclick="init()">Start Camera</button>
 
 <br><br>
 
@@ -61,15 +40,12 @@ const URL = "https://teachablemachine.withgoogle.com/models/e-gQIohsI/";
 
 let model, webcam, ctx, labelContainer, maxPredictions;
 
-async function init(){
-
-try{
+async function init() {
 
 const modelURL = URL + "model.json";
 const metadataURL = URL + "metadata.json";
 
 model = await tmPose.load(modelURL, metadataURL);
-
 maxPredictions = model.getTotalClasses();
 
 const size = 400;
@@ -83,53 +59,36 @@ await webcam.play();
 window.requestAnimationFrame(loop);
 
 const canvas = document.getElementById("canvas");
-
 canvas.width = size;
 canvas.height = size;
-
 ctx = canvas.getContext("2d");
 
 labelContainer = document.getElementById("label-container");
+labelContainer.innerHTML = "";
 
-labelContainer.innerHTML="";
-
-for(let i=0;i<maxPredictions;i++){
-
+for (let i = 0; i < maxPredictions; i++) {
 labelContainer.appendChild(document.createElement("div"));
-
-}
-
-}catch(e){
-
-alert("เกิดข้อผิดพลาดในการเปิดกล้อง หรือโหลด AI");
-
-console.error(e);
-
 }
 
 }
 
-async function loop(){
+async function loop() {
 
 webcam.update();
-
 await predict();
-
 window.requestAnimationFrame(loop);
 
 }
 
-async function predict(){
+async function predict() {
 
-const {pose, posenetOutput} = await model.estimatePose(webcam.canvas);
-
+const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
 const prediction = await model.predict(posenetOutput);
 
-for(let i=0;i<maxPredictions;i++){
+for (let i = 0; i < maxPredictions; i++) {
 
 const classPrediction =
-prediction[i].className + " : " +
-(prediction[i].probability*100).toFixed(0) + "%";
+prediction[i].className + " : " + prediction[i].probability.toFixed(2);
 
 labelContainer.childNodes[i].innerHTML = classPrediction;
 
@@ -139,21 +98,14 @@ drawPose(pose);
 
 }
 
-function drawPose(pose){
+function drawPose(pose) {
 
-if(webcam.canvas){
+ctx.drawImage(webcam.canvas, 0, 0);
 
-ctx.drawImage(webcam.canvas,0,0);
-
-if(pose){
-
+if (pose) {
 const minPartConfidence = 0.5;
-
-tmPose.drawKeypoints(pose.keypoints,minPartConfidence,ctx);
-tmPose.drawSkeleton(pose.keypoints,minPartConfidence,ctx);
-
-}
-
+tmPose.drawKeypoints(pose.keypoints, minPartConfidence, ctx);
+tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
 }
 
 }
