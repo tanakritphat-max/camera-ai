@@ -5,8 +5,7 @@
 <meta charset="UTF-8">
 <title>AI Pose Camera</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 
 <style>
@@ -91,7 +90,6 @@ labelContainer.appendChild(document.createElement("div"));
 async function loop() {
 
 webcam.update();
-
 await predict();
 
 window.requestAnimationFrame(loop);
@@ -101,7 +99,6 @@ window.requestAnimationFrame(loop);
 async function predict() {
 
 const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
-
 const prediction = await model.predict(posenetOutput);
 
 for (let i = 0; i < maxPredictions; i++) {
@@ -120,8 +117,6 @@ drawPose(pose);
 
 function drawPose(pose) {
 
-if (webcam.canvas) {
-
 ctx.drawImage(webcam.canvas, 0, 0);
 
 if (pose) {
@@ -130,8 +125,6 @@ const minPartConfidence = 0.5;
 
 tmPose.drawKeypoints(pose.keypoints, minPartConfidence, ctx);
 tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
-
-}
 
 }
 
