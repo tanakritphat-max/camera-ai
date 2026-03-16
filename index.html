@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<title>AI Pose Camera</title>
+<title>AI Pose Detection</title>
 
 <link rel="icon" href="data:,">
 
@@ -15,7 +15,7 @@
 body{
 font-family:Arial;
 text-align:center;
-background:#f4f6ff;
+background:#eef2ff;
 padding:20px;
 }
 
@@ -28,21 +28,24 @@ border:3px solid black;
 margin-top:20px;
 }
 
-#label-container{
+#result{
+font-size:40px;
 margin-top:20px;
-font-size:24px;
 font-weight:bold;
+color:#111;
 }
 
 button{
-margin-top:20px;
+
 font-size:18px;
 padding:10px 20px;
+margin:10px;
 border:none;
+border-radius:8px;
 background:#1e40ff;
 color:white;
-border-radius:8px;
 cursor:pointer;
+
 }
 
 button:hover{
@@ -57,19 +60,25 @@ background:#0f2bd6;
 
 <h1>AI ตรวจจับท่าทาง</h1>
 
-<button onclick="init()">เริ่มกล้อง</button>
+<button onclick="init()">Start Camera</button>
+<button onclick="stopCamera()">Stop Camera</button>
 
 <br>
 
 <canvas id="canvas"></canvas>
 
-<div id="label-container">AI ยังไม่เริ่ม</div>
+<div id="result">AI ยังไม่เริ่ม</div>
+
+<br>
+
+<button onclick="goHome()">กลับไปหน้าเว็บไซต์</button>
 
 <script>
 
 const URL = "https://teachablemachine.withgoogle.com/models/e-gQIohsI/";
 
-let model, webcam, ctx, labelContainer, maxPredictions;
+let model, webcam, ctx;
+let running = false;
 
 async function init(){
 
@@ -77,14 +86,16 @@ const modelURL = URL + "model.json";
 const metadataURL = URL + "metadata.json";
 
 model = await tmPose.load(modelURL, metadataURL);
-maxPredictions = model.getTotalClasses();
 
 const size = 400;
 const flip = true;
 
-webcam = new tmPose.Webcam(size, size, flip);
+webcam = new tmPose.Webcam(size,size,flip);
+
 await webcam.setup();
 await webcam.play();
+
+running = true;
 
 window.requestAnimationFrame(loop);
 
@@ -94,37 +105,50 @@ canvas.height = size;
 
 ctx = canvas.getContext("2d");
 
-labelContainer = document.getElementById("label-container");
-labelContainer.innerHTML = "";
-
-for(let i=0;i<maxPredictions;i++){
-labelContainer.appendChild(document.createElement("div"));
 }
+
+function stopCamera(){
+
+running=false;
+
+if(webcam){
+webcam.stop();
+}
+
+document.getElementById("result").innerHTML="Camera stopped";
 
 }
 
 async function loop(){
 
+if(!running) return;
+
 webcam.update();
 await predict();
+
 window.requestAnimationFrame(loop);
 
 }
 
 async function predict(){
 
-const {pose, posenetOutput} = await model.estimatePose(webcam.canvas);
+const {pose,posenetOutput} = await model.estimatePose(webcam.canvas);
 const prediction = await model.predict(posenetOutput);
 
-for(let i=0;i<maxPredictions;i++){
+let best = prediction[0];
 
-const classPrediction =
-prediction[i].className + " : " +
-(prediction[i].probability*100).toFixed(1) + "%";
+for(let i=0;i<prediction.length;i++){
 
-labelContainer.childNodes[i].innerHTML = classPrediction;
+if(prediction[i].probability > best.probability){
+
+best = prediction[i];
 
 }
+
+}
+
+document.getElementById("result").innerHTML =
+best.className + " " + (best.probability*100).toFixed(0) + "%";
 
 drawPose(pose);
 
@@ -136,12 +160,16 @@ ctx.drawImage(webcam.canvas,0,0);
 
 if(pose){
 
-const minPartConfidence = 0.5;
-
-tmPose.drawKeypoints(pose.keypoints,minPartConfidence,ctx);
-tmPose.drawSkeleton(pose.keypoints,minPartConfidence,ctx);
+tmPose.drawKeypoints(pose.keypoints,0.5,ctx);
+tmPose.drawSkeleton(pose.keypoints,0.5,ctx);
 
 }
+
+}
+
+function goHome(){
+
+window.location.href="https://sites.google.com/view/yousda/%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81";
 
 }
 
